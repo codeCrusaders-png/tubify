@@ -108,3 +108,11 @@ def get_mood_history(db: Session = Depends(get_db)):
             for r in records
         ]
     }
+
+
+@router.delete("/history")
+def clear_mood_history(db: Session = Depends(get_db)):
+    """Clear past music organization history."""
+    db.query(MoodHistory).delete()
+    db.commit()
+    return {"success": True, "message": "History cleared successfully."}

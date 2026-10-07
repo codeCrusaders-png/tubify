@@ -100,3 +100,9 @@ def test_organize_add_success(mock_add_track, mock_user_profile):
     assert history_res.status_code == 200
     history = history_res.json()["history"]
     assert any(h["song_id"] == "123" for h in history)
+
+    # Test DELETE /organize/history
+    del_res = client.delete("/organize/history")
+    assert del_res.status_code == 200
+    del_check = client.get("/organize/history")
+    assert len(del_check.json()["history"]) == 0

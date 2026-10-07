@@ -22,3 +22,4 @@ def test_classifier_covers_all_categories():
         res = mood_service.predict_mood(cat)
         assert res["mood"] == cat
         assert res["confidence"] == 1.0
+

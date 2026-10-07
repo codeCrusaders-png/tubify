@@ -1,301 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tubify — YouTube → Spotify Personal Music Organizer</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tubify — Personal Music Organizer</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <!-- Toast Notification Container -->
-  <div id="toastContainer" class="toast-container"></div>
+  <!-- Header Bar -->
+  <header class="top-nav">
+    <div class="nav-brand">TUBIFY</div>
+    <nav class="nav-links">
+      <button class="nav-btn active" data-view="home">Home</button>
+      <button class="nav-btn" data-view="history">History</button>
+      <button class="nav-btn" data-view="settings">Settings</button>
+    </nav>
+    <div class="nav-status">
+      <button id="authBtn" class="status-btn disconnected" type="button">
+        <span class="status-dot"></span>
+        <span id="authLabel">Connect Spotify</span>
+      </button>
+    </div>
+  </header>
 
-  <div class="app-container">
-    <!-- Header -->
-    <header class="header">
-      <div class="brand">
-        <div class="logo-mark">
-          <span class="icon-yt">▶</span>
-          <span class="arrow">⇄</span>
-          <span class="icon-spot">●</span>
-        </div>
-        <div class="brand-text">
-          <h1>Tubify</h1>
-          <p class="tagline">Personal Music Organizer &amp; Mood Matcher</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <div class="auth-bar" id="authBar">
-          <span id="authStatus" class="auth-badge disconnected">Spotify Disconnected</span>
-          <button id="authBtn" class="btn btn-secondary">Connect Spotify</button>
-        </div>
-        <button id="demoModeToggle" class="btn btn-demo" title="Toggle Mock/Demo Mode for quick offline testing">
-          <span class="demo-dot"></span> Demo Mode
-        </button>
-      </div>
-    </header>
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="toast-stack" aria-live="polite"></div>
 
-    <!-- Main Content Flow -->
-    <main class="main-content">
-      <!-- Step 1: Input Section -->
-      <section class="card input-section" id="inputSection">
-        <div class="card-header">
-          <span class="step-num">01</span>
-          <div>
-            <h2>Paste YouTube Song Link</h2>
-            <p class="subtitle">Supports standard watch links, YouTube Shorts, mobile, and embed URLs.</p>
-          </div>
-        </div>
+  <!-- Main View Container -->
+  <main class="content-container">
 
-        <form id="urlForm" class="url-form">
-          <div class="input-wrapper">
-            <span class="input-icon">🔗</span>
-            <input 
-              type="url" 
-              id="youtubeUrl" 
-              placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
-              required
-              autocomplete="off"
-            />
-          </div>
-          <button type="submit" id="analyzeBtn" class="btn btn-primary">
-            <span class="btn-text">Analyze Video</span>
-            <span class="spinner hidden" id="analyzeSpinner"></span>
+    <!-- VIEW 1: HOME -->
+    <section id="viewHome" class="app-view active">
+      
+      <!-- Stage: Landing / Input -->
+      <div id="landingStage" class="landing-stage">
+        <h1 class="hero-prompt">Where did you discover something good?</h1>
+        <p class="hero-lead">Paste a YouTube link and we'll find it on Spotify.</p>
+
+        <form id="analyzeForm" class="url-input-card">
+          <input 
+            type="url" 
+            id="urlInput" 
+            placeholder="Paste YouTube link..." 
+            required 
+            autocomplete="off" 
+            spellcheck="false"
+          />
+          <button type="submit" id="analyzeSubmitBtn" class="action-btn">
+            Analyze
           </button>
         </form>
 
-        <!-- Quick Sample Chips for 1-Click Testing -->
-        <div class="quick-samples">
-          <span class="samples-label">Try sample:</span>
-          <button type="button" class="sample-chip" data-url="https://www.youtube.com/watch?v=dQw4w9WgXcQ">🕺 Rick Astley</button>
-          <button type="button" class="sample-chip" data-url="https://www.youtube.com/watch?v=4NRXx6U8ABQ">🌃 The Weeknd</button>
-          <button type="button" class="sample-chip" data-url="https://www.youtube.com/watch?v=waAlgFq9Xq8">🌙 Mr.Kitty - After Dark</button>
-        </div>
-      </section>
+        <p class="control-note">You stay in control. Nothing gets added without your approval.</p>
 
-      <!-- Step 2: Song Match Review -->
-      <section class="card hidden" id="songMatchSection">
-        <div class="card-header">
-          <span class="step-num">02</span>
-          <div>
-            <h2>Review Track Match</h2>
-            <p class="subtitle">YouTube title cleaned of noisy tags and matched with Spotify's catalog.</p>
+        <!-- Inline Progress Indicator -->
+        <div id="analysisProgress" class="inline-progress hidden" aria-live="polite">
+          <div class="progress-message" id="progressMessage">Finding song</div>
+          <div class="progress-steps">
+            <span class="step-indicator" id="dotYt">● <span class="step-label">YouTube</span></span>
+            <span class="step-indicator" id="dotSpot">○ <span class="step-label">Spotify</span></span>
+            <span class="step-indicator" id="dotMood">○ <span class="step-label">Mood</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage: Song Match Card -->
+      <div id="songStage" class="flow-stage hidden">
+        <div class="music-card">
+          <img id="trackArtwork" src="" alt="Album Artwork" class="track-artwork" />
+          <div class="track-info">
+            <h2 id="trackTitle" class="track-title">-</h2>
+            <p id="trackArtist" class="track-artist">-</p>
+            <div class="track-meta" id="trackMeta">Spotify match · 98% confidence</div>
+          </div>
+          <div class="card-action">
+            <button id="useTrackBtn" class="primary-btn">Use this track</button>
           </div>
         </div>
 
-        <div class="match-grid">
-          <!-- YouTube Card -->
-          <div class="source-card yt-card">
-            <span class="badge yt-badge">YouTube Source</span>
-            <img id="ytThumbnail" src="" alt="Thumbnail" class="media-thumb">
-            <div class="media-details">
-              <h3 id="ytTitle">-</h3>
-              <p class="meta-item"><strong>Artist:</strong> <span id="ytArtist">-</span></p>
-              <p class="meta-item"><strong>Channel:</strong> <span id="ytChannel">-</span></p>
-              <p class="meta-item"><strong>Duration:</strong> <span id="ytDuration">-</span></p>
+        <!-- Not Quite Right / Candidate Alternatives -->
+        <div class="candidate-control">
+          <button id="toggleCandidatesBtn" class="link-btn">Not quite right?</button>
+          <div id="candidateList" class="candidate-list hidden"></div>
+        </div>
+      </div>
+
+      <!-- Stage: Mood Interaction -->
+      <div id="moodStage" class="flow-stage hidden">
+        <div class="mood-prompt-box">
+          <h2 class="section-title">What vibe are you saving this for?</h2>
+
+          <div class="mood-paths">
+            <!-- Path 1: Tell Me -->
+            <div class="mood-path-block">
+              <span class="path-label">Tell me</span>
+              <input 
+                type="text" 
+                id="customVibeInput" 
+                placeholder="e.g. rainy night drive, late-night coding, peaceful evening..."
+                autocomplete="off"
+              />
             </div>
-          </div>
 
-          <!-- Spotify Match Card -->
-          <div class="source-card spot-card">
-            <span class="badge spot-badge">Spotify Canonical</span>
-            <img id="spotCover" src="" alt="Album Art" class="media-thumb">
-            <div class="media-details">
-              <h3 id="spotTitle">-</h3>
-              <p class="meta-item"><strong>Artist:</strong> <span id="spotArtist">-</span></p>
-              <p class="meta-item"><strong>Album:</strong> <span id="spotAlbum">-</span></p>
-              <div class="confidence-pill" id="spotConfidencePill">Match Confidence: 95%</div>
-              
-              <!-- Audio Preview Player -->
-              <div id="audioPreviewWrapper" class="audio-preview hidden">
-                <audio id="trackAudio" controls preload="none"></audio>
+            <!-- Path 2: Pick One -->
+            <div class="mood-path-block">
+              <span class="path-label">Pick one</span>
+              <div class="chip-group" id="moodChipGroup">
+                <button type="button" class="mood-chip" data-mood="Chill">Chill</button>
+                <button type="button" class="mood-chip" data-mood="Late Night">Late Night</button>
+                <button type="button" class="mood-chip" data-mood="Sad">Sad</button>
+                <button type="button" class="mood-chip" data-mood="Romantic">Romantic</button>
+                <button type="button" class="mood-chip" data-mood="Workout">Workout</button>
+                <button type="button" class="mood-chip" data-mood="Focus">Focus</button>
+                <button type="button" class="mood-chip" data-mood="Driving">Driving</button>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Candidate Alternatives List (if confidence is low or user wants options) -->
-        <div id="candidatesContainer" class="candidates-container hidden">
-          <h4>Alternative Match Candidates</h4>
-          <p class="candidates-subtitle">Click any candidate below to select it:</p>
-          <div id="candidatesList" class="candidates-list"></div>
-        </div>
-
-        <div class="action-row space-between">
-          <button id="toggleCandidatesBtn" class="btn btn-outline btn-sm">Switch Candidate</button>
-          <button id="confirmMatchBtn" class="btn btn-primary">Confirm Song & Pick Mood ➔</button>
-        </div>
-      </section>
-
-      <!-- Step 3: Mood Input -->
-      <section class="card hidden" id="moodSection">
-        <div class="card-header">
-          <span class="step-num">03</span>
-          <div>
-            <h2>What vibe does this song carry?</h2>
-            <p class="subtitle">Select a suggested mood, describe your vibe in natural language, or let AI analyze it.</p>
+          <div class="mood-actions">
+            <button id="autoDecideBtn" class="ghost-btn">Let Tubify decide</button>
+            <button id="confirmMoodBtn" class="primary-btn">Continue</button>
           </div>
         </div>
-        
-        <div class="mood-chips" id="moodChips">
-          <button type="button" class="chip" data-mood="Chill">☕ Chill</button>
-          <button type="button" class="chip" data-mood="Late Night">🌙 Late Night</button>
-          <button type="button" class="chip" data-mood="Sad">🌧️ Sad</button>
-          <button type="button" class="chip" data-mood="Romantic">🕯️ Romantic</button>
-          <button type="button" class="chip" data-mood="Workout">⚡ Workout</button>
-          <button type="button" class="chip" data-mood="Focus">📚 Focus</button>
-          <button type="button" class="chip" data-mood="Driving">🚗 Driving</button>
-        </div>
+      </div>
 
-        <div class="custom-mood-box">
-          <label for="customMoodInput">Or enter your custom vibe / situation in natural language:</label>
-          <input 
-            type="text" 
-            id="customMoodInput" 
-            placeholder="e.g., dark night drive through empty downtown streets" 
-            autocomplete="off"
-          />
-        </div>
+      <!-- Stage: Recommendation & Permission -->
+      <div id="recommendStage" class="flow-stage hidden">
+        <div class="rec-card">
+          <div class="rec-vibe-header" id="recVibeHeader">Feels like: Late Night</div>
+          <p class="rec-intro">Based on your playlists, I'd put this in</p>
+          <h2 class="rec-playlist-name" id="recTargetPlaylist">Midnight Cruise</h2>
+          <p class="rec-reason" id="recReason">You've saved similar night-drive songs here before.</p>
+          <div class="rec-subtle-match" id="recSubtleMatch">91% match</div>
 
-        <div class="action-row space-between">
-          <button id="aiDecideBtn" class="btn btn-outline">✨ Let AI Decide Automatically</button>
-          <button id="recommendBtn" class="btn btn-primary">Get Playlist Recommendation ➔</button>
-        </div>
-      </section>
-
-      <!-- Step 4: Playlist Recommendation & Confirmation -->
-      <section class="card hidden" id="recommendSection">
-        <div class="card-header">
-          <span class="step-num">04</span>
-          <div>
-            <h2>Playlist Recommendation</h2>
-            <p class="subtitle">Synthesized from TF-IDF NLP classification, your past taste history, and Spotify playlists.</p>
+          <!-- Alternative playlists -->
+          <div class="rec-alternatives" id="recAlternativesWrapper">
+            <span class="alt-title">Alternative playlists</span>
+            <div class="alt-chips" id="altChips"></div>
           </div>
         </div>
-        
-        <div class="recommend-box">
-          <div class="rec-header">
-            <span class="rec-label">Target Spotify Container</span>
-            <h3 id="recPlaylistName" class="rec-playlist-title">-</h3>
-          </div>
 
-          <div class="rec-info-grid">
-            <div class="rec-stat">
-              <span class="stat-label">AI Detected Mood</span>
-              <span class="stat-val" id="recAiMood">-</span>
+        <!-- Permission Dialog Container -->
+        <div id="permissionBlock" class="permission-box">
+          <!-- State A: Playlist Exists -->
+          <div id="confirmExistingBlock" class="confirm-content">
+            <p class="confirm-heading">Add this to <span id="confirmPlName" class="emphasis">Midnight Cruise</span>?</p>
+            <div class="mini-song-preview">
+              <img id="miniArtwork" src="" alt="Album Artwork" class="mini-art" />
+              <div class="mini-details">
+                <span id="miniTitle" class="mini-title">-</span>
+                <span id="miniArtist" class="mini-artist">-</span>
+              </div>
             </div>
-            <div class="rec-stat">
-              <span class="stat-label">Your Mood</span>
-              <span class="stat-val" id="recUserMood">-</span>
-            </div>
-            <div class="rec-stat">
-              <span class="stat-label">Recommendation Score</span>
-              <span class="stat-val" id="recConfidence">-</span>
+            <div class="confirm-actions">
+              <button id="cancelAddBtn" class="ghost-btn">Not now</button>
+              <button id="submitAddBtn" class="primary-btn">Add to playlist</button>
             </div>
           </div>
 
-          <div class="rec-explanation-card">
-            <strong>💡 Why this playlist:</strong>
-            <p id="recExplanation">-</p>
+          <!-- State B: Playlist Missing -->
+          <div id="createMissingBlock" class="confirm-content hidden">
+            <p class="missing-notice">I couldn't find a playlist that fits this vibe.</p>
+            <p class="confirm-heading">Create <span id="missingPlName" class="emphasis">Midnight Cruise</span>?</p>
+            <p class="missing-desc">Creates a new Spotify playlist and adds this song.</p>
+            <div class="confirm-actions">
+              <button id="chooseAnotherBtn" class="ghost-btn">Choose another</button>
+              <button id="createAndAddBtn" class="primary-btn">Create & add</button>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <!-- Playlist status banner -->
-          <div id="playlistStatusNotice" class="banner banner-info"></div>
-
-          <!-- Manual Playlist Override Dropdown -->
-          <div class="manual-override-box">
-            <label for="manualPlaylistSelect">Want to choose a different playlist instead?</label>
-            <select id="manualPlaylistSelect">
-              <option value="">-- Use Recommended Playlist --</option>
-            </select>
+      <!-- Stage: Success -->
+      <div id="successStage" class="flow-stage hidden">
+        <div class="success-card">
+          <h2 class="success-word">Saved.</h2>
+          <div class="saved-track-row">
+            <span id="successTitle" class="saved-title">-</span>
+            <span class="saved-sep">—</span>
+            <span id="successArtist" class="saved-artist">-</span>
           </div>
+          <div class="saved-pl-info">
+            Added to <strong id="successPlaylist">-</strong>
+          </div>
+          <p class="saved-sub">Your song is now in Spotify.</p>
 
-          <!-- Alternatives -->
-          <div id="recAlternativesContainer" class="rec-alternatives hidden">
-            <span class="alt-label">Top Alternatives:</span>
-            <div id="recAlternativesList" class="alt-list"></div>
+          <div class="success-actions">
+            <a id="openSpotifyBtn" href="#" target="_blank" rel="noopener" class="outline-btn">Open Spotify</a>
+            <button id="addAnotherBtn" class="primary-btn">Add another song</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: HISTORY -->
+    <section id="viewHistory" class="app-view hidden">
+      <div class="history-view-container">
+        <div class="view-header">
+          <h2>Recently added</h2>
+          <p class="subtitle">Songs you've organized through Tubify.</p>
+        </div>
+
+        <div id="historyList" class="history-list"></div>
+        <div id="historyEmpty" class="empty-state hidden">
+          <p>No songs added yet. Paste a link on the home screen to start organizing.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: SETTINGS -->
+    <section id="viewSettings" class="app-view hidden">
+      <div class="settings-view-container">
+        <div class="view-header">
+          <h2>Settings</h2>
+        </div>
+
+        <!-- Section: Spotify Connection -->
+        <div class="setting-group">
+          <h3>Spotify connection</h3>
+          <div class="setting-row">
+            <div>
+              <p class="setting-label" id="settingsConnLabel">Checking status...</p>
+              <p class="setting-desc" id="settingsConnDesc">Required to view and update your Spotify playlists.</p>
+            </div>
+            <button id="settingsAuthBtn" class="outline-btn">Connect</button>
           </div>
         </div>
 
-        <div class="action-row space-between">
-          <button id="cancelRecBtn" class="btn btn-secondary">Cancel</button>
-          <button id="confirmAddBtn" class="btn btn-success">Confirm &amp; Add to Spotify</button>
-        </div>
-      </section>
-
-      <!-- Step 5: Result Screen -->
-      <section class="card hidden" id="resultSection">
-        <div class="success-banner">
-          <div class="success-icon">✓</div>
-          <h2>Song Successfully Organized!</h2>
-          <p id="resultSubtitle">Your choice has been saved to train future personalized recommendations.</p>
-        </div>
-
-        <div class="result-details">
-          <div class="result-row">
-            <span class="r-label">Song:</span>
-            <span class="r-val" id="resSong">-</span>
-          </div>
-          <div class="result-row">
-            <span class="r-label">Artist:</span>
-            <span class="r-val" id="resArtist">-</span>
-          </div>
-          <div class="result-row">
-            <span class="r-label">Detected Mood:</span>
-            <span class="r-val" id="resAiMood">-</span>
-          </div>
-          <div class="result-row">
-            <span class="r-label">Your Mood:</span>
-            <span class="r-val" id="resUserMood">-</span>
-          </div>
-          <div class="result-row">
-            <span class="r-label">Target Playlist:</span>
-            <span class="r-val highlight" id="resPlaylist">-</span>
-          </div>
-          <div class="result-row">
-            <span class="r-label">Confidence:</span>
-            <span class="r-val" id="resConfidence">-</span>
-          </div>
+        <!-- Section: Default Behavior -->
+        <div class="setting-group">
+          <h3>Default behavior</h3>
+          <label class="radio-label">
+            <input type="radio" name="defaultBehavior" value="ask" checked />
+            <div>
+              <strong>Ask me every time</strong>
+              <p class="setting-desc">Always confirm before creating or updating playlists.</p>
+            </div>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="defaultBehavior" value="remember" />
+            <div>
+              <strong>Remember my choices</strong>
+              <p class="setting-desc">Automatically choose playlists based on previously saved preferences.</p>
+            </div>
+          </label>
         </div>
 
-        <div class="action-row space-between">
-          <a id="openSpotifyLink" href="#" target="_blank" class="btn btn-outline">🎧 Open in Spotify</a>
-          <button id="organizeAnotherBtn" class="btn btn-primary">Organize Another Song ➔</button>
+        <!-- Section: Data -->
+        <div class="setting-group">
+          <h3>Data</h3>
+          <div class="setting-row">
+            <div>
+              <p class="setting-label">Local History</p>
+              <p class="setting-desc">Remove all logged songs from your local taste history.</p>
+            </div>
+            <button id="clearHistoryBtn" class="danger-btn">Clear local history</button>
+          </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Personal Taste History Section -->
-      <section class="card history-section">
-        <div class="history-header">
-          <div>
-            <h3>Your Personal Taste History</h3>
-            <p class="subtitle">Past organization decisions logged in SQLite powering your taste recommendations.</p>
-          </div>
-          <button id="refreshHistoryBtn" class="btn btn-sm btn-outline">↻ Refresh</button>
-        </div>
-        <div id="historyTableContainer">
-          <p class="empty-history" id="emptyHistoryMsg">No songs organized yet. Paste a link above to get started!</p>
-          <div class="table-responsive">
-            <table class="history-table hidden" id="historyTable">
-              <thead>
-                <tr>
-                  <th>Song</th>
-                  <th>Artist</th>
-                  <th>Your Mood</th>
-                  <th>AI Mood</th>
-                  <th>Playlist Used</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="historyBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </main>
+  </main>
+
+  <!-- Modal for "Choose another playlist" -->
+  <div id="choosePlaylistModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>Choose a playlist</h3>
+      <p class="modal-subtitle">Select an existing playlist from your library:</p>
+      <div id="modalPlaylistList" class="modal-playlist-list"></div>
+      <div class="modal-actions">
+        <button id="modalCloseBtn" class="ghost-btn">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
