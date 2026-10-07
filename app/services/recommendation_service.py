@@ -1,4 +1,6 @@
 from collections import Counter
+from datetime import datetime, timezone
+import math
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 from app.models.database import MoodHistory
@@ -7,9 +9,12 @@ from app.services.spotify_service import string_similarity
 
 
 class RecommendationService:
-    """Combines NLP mood detection, user natural language input, and historical user taste
+    """Multi-Factor Hybrid Recommender combining:
 
-    to recommend existing or new Spotify playlists.
+    1. NLP Semantic Mood Affinity
+    2. Historical Taste Personalization (Query Similarity & Frequency)
+    3. Artist & Track Affinity
+    4. Spotify Library Alignment
     """
 
     def recommend(
@@ -20,47 +25,77 @@ class RecommendationService:
         user_playlists: List[Dict[str, Any]],
         db: Optional[Session] = None,
     ) -> Dict[str, Any]:
-        """Generate playlist recommendation and alternatives."""
+        """Generate high-precision playlist recommendation with explainability."""
         raw_input = (user_mood_input or "").strip()
         fallback_context = f"{title} {artist}"
 
         # 1. NLP Mood Prediction
         nlp_result = mood_service.predict_mood(raw_input, fallback_context=fallback_context)
         detected_ai_mood = nlp_result["mood"]
-        ai_confidence = nlp_result["confidence"]
+        base_confidence = nlp_result["confidence"]
+        all_mood_scores = nlp_result.get("all_scores", {})
 
-        # 2. Historical Taste Personalization
+        # 2. Historical Preferences & Artist Affinity Analysis
         historical_playlist_boost: Optional[str] = None
         historical_weight = 0.0
+        artist_playlist_boost: Optional[str] = None
+        explanation_factors = [f"NLP detected '{detected_ai_mood}' mood ({int(base_confidence * 100)}% match)"]
 
-        if db and raw_input:
+        if db:
             history_records = db.query(MoodHistory).all()
-            matching_playlists = []
+            now = datetime.now(timezone.utc)
+
+            mood_matches = []
+            artist_matches = []
+
             for record in history_records:
-                if record.user_mood:
+                # Recency weight (half-life of 30 days)
+                rec_age_days = (now - record.created_at.replace(tzinfo=timezone.utc)).total_seconds() / 86400 if record.created_at else 0
+                decay = math.exp(-0.02 * min(rec_age_days, 180))
+
+                # Mood similarity
+                if raw_input and record.user_mood:
                     sim = string_similarity(record.user_mood, raw_input)
-                    if sim >= 0.70:
-                        matching_playlists.append(record.selected_playlist)
+                    if sim >= 0.65:
+                        mood_matches.append((record.selected_playlist, sim * decay))
 
-            if matching_playlists:
-                # Find most frequent playlist chosen for this mood type
-                counts = Counter(matching_playlists)
-                most_common_playlist, count = counts.most_common(1)[0]
-                historical_playlist_boost = most_common_playlist
-                historical_weight = min(0.35, count * 0.1)
+                # Artist matching
+                if artist and record.artist and string_similarity(artist, record.artist) >= 0.80:
+                    artist_matches.append((record.selected_playlist, decay))
 
-        # 3. Determine Candidate Playlists
-        candidate_primary = historical_playlist_boost if historical_playlist_boost else detected_ai_mood
+            # Process mood match scores
+            if mood_matches:
+                score_by_pl: Dict[str, float] = {}
+                for pl, score in mood_matches:
+                    score_by_pl[pl] = score_by_pl.get(pl, 0.0) + score
+                best_hist_pl = max(score_by_pl, key=score_by_pl.get)
+                historical_playlist_boost = best_hist_pl
+                historical_weight = min(0.30, round(score_by_pl[best_hist_pl] * 0.1, 2))
+                explanation_factors.append(f"matched past taste for similar mood phrases -> '{best_hist_pl}'")
+
+            # Process artist affinity
+            if artist_matches:
+                artist_counts = Counter([pl for pl, _ in artist_matches])
+                fav_pl, count = artist_counts.most_common(1)[0]
+                artist_playlist_boost = fav_pl
+                explanation_factors.append(f"you previously organized {artist} into '{fav_pl}' ({count}x)")
+
+        # 3. Determine Candidate Primary Playlist
+        # Priority: Artist past choice > Historical mood choice > Detected NLP mood
+        if artist_playlist_boost and (artist_playlist_boost == historical_playlist_boost or historical_weight > 0.15):
+            candidate_primary = artist_playlist_boost
+        elif historical_playlist_boost:
+            candidate_primary = historical_playlist_boost
+        else:
+            candidate_primary = detected_ai_mood
 
         # 4. Map candidate against existing user playlists
         playlist_map = {p["name"].strip().lower(): p for p in user_playlists}
 
         def find_best_existing(target_name: str) -> Optional[Dict[str, Any]]:
-            # Exact match
             target_lower = target_name.strip().lower()
             if target_lower in playlist_map:
                 return playlist_map[target_lower]
-            # Substring or high similarity match (e.g. "Late Night" matches "Late Night Drives")
             for name_lower, p_data in playlist_map.items():
                 if target_lower in name_lower or name_lower in target_lower:
                     return p_data
@@ -73,13 +108,12 @@ class RecommendationService:
         primary_exists = primary_existing is not None
         primary_playlist_id = primary_existing["id"] if primary_existing else None
 
-        # Final calculated confidence
-        final_confidence = min(0.98, round(ai_confidence + historical_weight, 2))
+        # Calculate final calibrated confidence
+        final_confidence = min(0.98, max(0.40, round(base_confidence + historical_weight, 2)))
 
         # 5. Build Alternatives
         alternatives = []
-        scores = nlp_result.get("all_scores", {})
-        sorted_moods = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        sorted_moods = sorted(all_mood_scores.items(), key=lambda x: x[1], reverse=True)
 
         for mood_name, score in sorted_moods:
             if mood_name == detected_ai_mood:
@@ -96,9 +130,7 @@ class RecommendationService:
             if len(alternatives) >= 2:
                 break
 
-        explanation = f"Detected mood '{detected_ai_mood}' with {int(ai_confidence * 100)}% confidence."
-        if historical_playlist_boost:
-            explanation += f" Adjusted for your past taste matching '{historical_playlist_boost}'."
+        explanation = "; ".join(explanation_factors) + "."
 
         return {
             "recommended_playlist": primary_playlist_name,
