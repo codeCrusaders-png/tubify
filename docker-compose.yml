@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  tubify:
+    build: .
+    container_name: tubify_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=Tubify
+      - APP_ENV=production
+      - DEBUG=False
+      - HOST=0.0.0.0
+      - PORT=8000
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI:-http://127.0.0.1:8000/auth/spotify/callback}
+      - SECRET_KEY=${SECRET_KEY:-tubify-production-secret-key-32chars}
+    volumes:
+      - ./data:/app/data
