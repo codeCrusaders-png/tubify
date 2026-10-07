@@ -15,76 +15,119 @@ MOOD_CATEGORIES = [
     "Driving",
 ]
 
+# Comprehensive natural language corpus across 7 core musical vibes
 TRAINING_DATA: List[Tuple[str, str]] = [
-    # Chill
+    # ☕ Chill
     ("peaceful relaxing calm mellow ambient lofi beats", "Chill"),
-    ("lazy sunday afternoon sitting on porch", "Chill"),
-    ("rainy evening reading book warm tea cozy", "Chill"),
-    ("acoustic guitar soft gentle morning coffee", "Chill"),
-    ("unwinding after a long stressful day", "Chill"),
-    ("breezy tranquil serene ocean waves floating", "Chill"),
-    ("lofi hip hop to relax sleep to", "Chill"),
-    ("smooth slow quiet mellow atmosphere", "Chill"),
-    ("something peaceful for rainy evening", "Chill"),
-    ("soothing calming slow tempo", "Chill"),
+    ("lazy sunday afternoon sitting on porch drinking iced tea", "Chill"),
+    ("rainy afternoon reading a book with warm coffee cozy", "Chill"),
+    ("acoustic guitar soft gentle morning sunlight", "Chill"),
+    ("unwinding after a long stressful day at work relaxing", "Chill"),
+    ("breezy tranquil serene ocean waves floating slow", "Chill"),
+    ("lofi hip hop to relax and fall asleep to peaceful", "Chill"),
+    ("smooth slow quiet mellow atmosphere unwinding", "Chill"),
+    ("something peaceful for a cozy rainy evening", "Chill"),
+    ("soothing calming slow tempo acoustic indie chill", "Chill"),
+    ("warm bath candle cozy blankets fireplace relaxing vibe", "Chill"),
+    ("soft piano background music tranquil quiet calm", "Chill"),
+    ("dreamy cloud floating daydreaming soft synths chill", "Chill"),
+    ("coffee shop background murmur acoustic vibes mellow", "Chill"),
+    ("chill vibes only low tempo relaxing rhythm", "Chill"),
 
-    # Late Night
-    ("dark night drive midnight cruising empty highway", "Late Night"),
-    ("2am thoughts insomnia late night vibes", "Late Night"),
-    ("neon lights city skyline after hours", "Late Night"),
-    ("synthwave retrowave dark electro night music", "Late Night"),
-    ("after dark nocturnal moody mysterious atmosphere", "Late Night"),
-    ("alone in my room at midnight looking at stars", "Late Night"),
-    ("midnight ride through empty city streets", "Late Night"),
-    ("dark moody atmospheric synth late evening", "Late Night"),
-    ("deep nocturnal bass synthwave cruising", "Late Night"),
-    ("dark night drive", "Late Night"),
+    # 🌙 Late Night
+    ("dark night drive midnight cruising empty highway neon", "Late Night"),
+    ("2am thoughts insomnia late night moody vibes alone", "Late Night"),
+    ("neon lights city skyline after hours synthesizer", "Late Night"),
+    ("synthwave retrowave dark electro night music headlights", "Late Night"),
+    ("after dark nocturnal moody mysterious atmosphere dark", "Late Night"),
+    ("alone in my bedroom at midnight staring at the ceiling", "Late Night"),
+    ("midnight ride through empty rainy city streets alone", "Late Night"),
+    ("dark moody atmospheric synth bass late evening", "Late Night"),
+    ("deep nocturnal bass synthwave cruising night time", "Late Night"),
+    ("dark night drive through empty downtown streets", "Late Night"),
+    ("driving alone under streetlights past midnight", "Late Night"),
+    ("midnight insomnia 3am quiet city dark electro", "Late Night"),
+    ("nocturnal urban city night vibes brooding", "Late Night"),
+    ("shadowy neon aesthetic late night drive synth", "Late Night"),
+    ("late night cruising dark thoughts retro electro", "Late Night"),
 
-    # Sad
-    ("heartbreak crying broken heart tears sorrow", "Sad"),
-    ("melancholy depressing grieving feeling lonely", "Sad"),
-    ("sad emotional acoustic ballad crying alone", "Sad"),
-    ("missing you wishing you were here grief", "Sad"),
-    ("gloomy rainy day lost someone i loved", "Sad"),
-    ("painful memories heartbreak hurt inside", "Sad"),
-    ("dark depressing lonely broken soul", "Sad"),
-    ("feeling helpless devastated weep mournful", "Sad"),
+    # 🌧️ Sad
+    ("heartbreak crying broken heart tears sorrow pain", "Sad"),
+    ("melancholy depressing grieving feeling completely lonely", "Sad"),
+    ("sad emotional acoustic ballad crying alone in the dark", "Sad"),
+    ("missing you wishing you were still here grief emptiness", "Sad"),
+    ("gloomy rainy day lost someone i loved deeply hurtful", "Sad"),
+    ("painful memories heartbreak hurts so much inside ache", "Sad"),
+    ("dark depressing lonely broken soul hopeless weeping", "Sad"),
+    ("feeling helpless devastated mournful sorrow tearful", "Sad"),
+    ("songs to cry to after a bad breakup heartbreak", "Sad"),
+    ("melancholic slow guitar sad vocals aching loneliness", "Sad"),
+    ("nobody loves me feeling down gloomy depressing thoughts", "Sad"),
+    ("regret missing an ex tears weeping sadness", "Sad"),
+    ("heavy heart grieving loss emotional crying ballad", "Sad"),
+    ("sorrowful hopeless melancholy weeping in bed", "Sad"),
+    ("depressed sad lonely empty cold rainy day", "Sad"),
 
-    # Romantic
-    ("love song date night romantic dinner candles", "Romantic"),
-    ("falling in love crush sweetheart romance", "Romantic"),
-    ("slow dance holding hands kissing affection", "Romantic"),
-    ("sensual intimate tender passion lovers", "Romantic"),
-    ("candlelight anniversary wedding slow romance", "Romantic"),
-    ("sweet melody love ballad for my partner", "Romantic"),
-    ("butterflies in stomach romantic serenade", "Romantic"),
+    # 🕯️ Romantic
+    ("love song date night romantic dinner candles sweet", "Romantic"),
+    ("falling in love crush sweetheart romance devotion", "Romantic"),
+    ("slow dance holding hands kissing tender affection", "Romantic"),
+    ("sensual intimate tender passion lovers romantic evening", "Romantic"),
+    ("candlelight anniversary wedding slow romance gentle", "Romantic"),
+    ("sweet melody love ballad for my partner forever love", "Romantic"),
+    ("butterflies in stomach romantic serenade acoustic love", "Romantic"),
+    ("holding you close slow dancing in the living room", "Romantic"),
+    ("falling deeply in love forever you and me romantic", "Romantic"),
+    ("intimacy passionate love warmth tender caress lovers", "Romantic"),
+    ("sunset walk on the beach holding hands romantic", "Romantic"),
+    ("love of my life sweet cute romantic affection", "Romantic"),
+    ("soulmate tender kiss slow romance melody", "Romantic"),
+    ("honeymoon candlelight dinner sweet passionate", "Romantic"),
 
-    # Workout
-    ("gym motivation heavy bass high energy pump up", "Workout"),
-    ("cardio running fast tempo aggressive electronic", "Workout"),
-    ("lifting heavy weights fitness workout beast mode", "Workout"),
-    ("intense training boxing crossfit explosive energy", "Workout"),
-    ("running uphill adrenaline rush high bpm", "Workout"),
-    ("powerlifting hard techno aggressive phonk", "Workout"),
-    ("push past limits workout hype track", "Workout"),
+    # ⚡ Workout
+    ("gym motivation heavy bass high energy pump up beast mode", "Workout"),
+    ("cardio running fast tempo aggressive electronic phonk", "Workout"),
+    ("lifting heavy weights fitness workout intense power", "Workout"),
+    ("intense training boxing crossfit explosive energy bpm", "Workout"),
+    ("running sprint uphill adrenaline rush high tempo hype", "Workout"),
+    ("powerlifting hard techno aggressive hardstyle bass drop", "Workout"),
+    ("push past limits workout hype track adrenaline gym", "Workout"),
+    ("pre workout energy pump up the bass aggressive hype", "Workout"),
+    ("heavy deadlifts squats bench press workout motivation", "Workout"),
+    ("fast paced running treadmill sprint workout music", "Workout"),
+    ("aggressive rap heavy electronic gym hype pump", "Workout"),
+    ("explosive workout training session high bpm boost", "Workout"),
+    ("fitness workout motivation sweat grind beast", "Workout"),
 
-    # Focus
-    ("study coding concentration deep work programming", "Focus"),
-    ("reading background instrumental no lyrics", "Focus"),
-    ("productivity flow state ambient focus binaural", "Focus"),
-    ("working on projects writing essay study session", "Focus"),
-    ("deep concentration intellectual math science study", "Focus"),
-    ("subtle instrumental beats for work and study", "Focus"),
-    ("minimalist ambient noise focus and learn", "Focus"),
+    # 📚 Focus
+    ("study coding concentration deep work programming flow", "Focus"),
+    ("reading background instrumental no lyrics uninterrupted", "Focus"),
+    ("productivity flow state ambient focus binaural beats", "Focus"),
+    ("working on projects writing essay study session quiet", "Focus"),
+    ("deep concentration intellectual math science study grind", "Focus"),
+    ("subtle instrumental beats for work and study session", "Focus"),
+    ("minimalist ambient noise focus and learn deep attention", "Focus"),
+    ("studying for finals exam prep focus concentration", "Focus"),
+    ("software engineering coding deep focus uninterrupted", "Focus"),
+    ("lofi study beats no vocals instrumental focus mode", "Focus"),
+    ("brain power concentration reading productivity zone", "Focus"),
+    ("ambient synth for deep analytical work and focus", "Focus"),
+    ("laser focus distraction free studying work session", "Focus"),
 
-    # Driving
-    ("road trip driving cruising with windows down", "Driving"),
-    ("car stereo highway cruising fast lane sunny drive", "Driving"),
-    ("weekend drive with friends roadtrip playlist", "Driving"),
-    ("scenic mountain road speed cruising music", "Driving"),
-    ("open road driving fast sports car radio", "Driving"),
-    ("summer road trip windows rolled down breeze", "Driving"),
-    ("car vibes driving into the sunset highway", "Driving"),
+    # 🚗 Driving
+    ("road trip driving cruising with windows rolled down breeze", "Driving"),
+    ("car stereo highway cruising fast lane sunny road drive", "Driving"),
+    ("weekend drive with friends roadtrip playlist sunshine", "Driving"),
+    ("scenic mountain road speed cruising music car radio", "Driving"),
+    ("open road driving fast sports car radio sunglasses", "Driving"),
+    ("summer road trip windows rolled down coastal highway", "Driving"),
+    ("car vibes driving into the sunset highway cruise", "Driving"),
+    ("singing along in the car road trip with friends", "Driving"),
+    ("long highway drive gas station sunset convertible car", "Driving"),
+    ("coastal road trip driving sunny afternoon breeze", "Driving"),
+    ("driving fast on the interstate car bass sound system", "Driving"),
+    ("winding country roads weekend road trip driving", "Driving"),
+    ("car ride sunny afternoon good vibes cruising", "Driving"),
 ]
 
 
@@ -105,14 +148,14 @@ class MoodClassifierService:
         self.categories = MOOD_CATEGORIES
         self.pipeline: Pipeline = Pipeline(
             [
-                ("tfidf", TfidfVectorizer(ngram_range=(1, 2), stop_words="english")),
+                ("tfidf", TfidfVectorizer(ngram_range=(1, 2), min_df=1, stop_words="english")),
                 ("clf", LogisticRegression(C=5.0, max_iter=300, random_state=42)),
             ]
         )
         self._train()
 
     def _train(self) -> None:
-        """Train classifier with initial training dataset."""
+        """Train classifier with training dataset."""
         texts = [clean_text(item[0]) for item in TRAINING_DATA]
         labels = [item[1] for item in TRAINING_DATA]
         self.pipeline.fit(texts, labels)
