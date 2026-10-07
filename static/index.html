@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube → Spotify Personal Music Organizer</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="icon-yt">▶</span>
+        <span class="arrow">➔</span>
+        <span class="icon-spot">●</span>
+        <h1>Music Organizer</h1>
+      </div>
+      <div class="auth-bar" id="authBar">
+        <span id="authStatus" class="auth-badge disconnected">Spotify Disconnected</span>
+        <button id="authBtn" class="btn btn-secondary">Connect Spotify</button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Input Section -->
+      <section class="card input-section" id="inputSection">
+        <h2>1. Enter YouTube Video</h2>
+        <p class="subtitle">Paste any YouTube music video, lyric video, or short link to extract track metadata.</p>
+        <form id="urlForm" class="url-form">
+          <input 
+            type="url" 
+            id="youtubeUrl" 
+            placeholder="https://www.youtube.com/watch?v=..." 
+            required
+            autocomplete="off"
+          />
+          <button type="submit" id="analyzeBtn" class="btn btn-primary">
+            <span class="btn-text">Analyze Video</span>
+            <span class="loader hidden" id="analyzeLoader"></span>
+          </button>
+        </form>
+        <div id="errorBanner" class="banner banner-error hidden"></div>
+      </section>
+
+      <!-- Step 2: Song Match Confirmation -->
+      <section class="card hidden" id="songMatchSection">
+        <h2>2. Review Track Matching</h2>
+        <div class="match-grid">
+          <!-- YouTube Extracted Card -->
+          <div class="source-card">
+            <div class="badge yt-badge">YouTube Extracted</div>
+            <img id="ytThumbnail" src="" alt="Thumbnail" class="media-thumb">
+            <div class="media-details">
+              <h3 id="ytTitle">-</h3>
+              <p class="meta-item"><strong>Artist:</strong> <span id="ytArtist">-</span></p>
+              <p class="meta-item"><strong>Channel:</strong> <span id="ytChannel">-</span></p>
+              <p class="meta-item"><strong>Duration:</strong> <span id="ytDuration">-</span></p>
+            </div>
+          </div>
+
+          <!-- Spotify Match Card -->
+          <div class="source-card">
+            <div class="badge spot-badge">Spotify Match</div>
+            <img id="spotCover" src="" alt="Album Art" class="media-thumb">
+            <div class="media-details">
+              <h3 id="spotTitle">-</h3>
+              <p class="meta-item"><strong>Artist:</strong> <span id="spotArtist">-</span></p>
+              <p class="meta-item"><strong>Album:</strong> <span id="spotAlbum">-</span></p>
+              <div class="confidence-pill" id="spotConfidencePill">Match Confidence: 95%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Candidate Alternatives if needed -->
+        <div id="candidatesContainer" class="candidates-container hidden">
+          <h4>Alternative Matches</h4>
+          <div id="candidatesList" class="candidates-list"></div>
+        </div>
+
+        <div class="action-row">
+          <button id="changeMatchBtn" class="btn btn-outline hidden">Pick Different Candidate</button>
+          <button id="confirmMatchBtn" class="btn btn-primary">Confirm Song & Pick Mood ➔</button>
+        </div>
+      </section>
+
+      <!-- Step 3: Mood Input -->
+      <section class="card hidden" id="moodSection">
+        <h2>3. Mood & Category</h2>
+        <p class="question">Do you have a specific mood or category for this song?</p>
+        
+        <div class="mood-chips" id="moodChips">
+          <button class="chip" data-mood="Chill">☕ Chill</button>
+          <button class="chip" data-mood="Late Night">🌙 Late Night</button>
+          <button class="chip" data-mood="Sad">🌧️ Sad</button>
+          <button class="chip" data-mood="Romantic">🕯️ Romantic</button>
+          <button class="chip" data-mood="Workout">⚡ Workout</button>
+          <button class="chip" data-mood="Focus">📚 Focus</button>
+          <button class="chip" data-mood="Driving">🚗 Driving</button>
+        </div>
+
+        <div class="custom-mood-box">
+          <label for="customMoodInput">Or enter your custom mood / vibe in natural language:</label>
+          <input 
+            type="text" 
+            id="customMoodInput" 
+            placeholder="e.g. dark night drive through empty streets" 
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="action-row space-between">
+          <button id="aiDecideBtn" class="btn btn-outline">✨ Let AI Decide Automatically</button>
+          <button id="recommendBtn" class="btn btn-primary">Get Playlist Recommendation ➔</button>
+        </div>
+      </section>
+
+      <!-- Step 4: Playlist Recommendation & Confirmation -->
+      <section class="card hidden" id="recommendSection">
+        <h2>4. Playlist Recommendation</h2>
+        
+        <div class="recommend-box">
+          <div class="rec-header">
+            <span class="rec-label">Target Spotify Playlist:</span>
+            <h3 id="recPlaylistName" class="rec-playlist-title">-</h3>
+          </div>
+
+          <div class="rec-info-grid">
+            <div class="rec-stat">
+              <span class="stat-label">AI Interpretation</span>
+              <span class="stat-val" id="recAiMood">-</span>
+            </div>
+            <div class="rec-stat">
+              <span class="stat-label">Your Mood</span>
+              <span class="stat-val" id="recUserMood">-</span>
+            </div>
+            <div class="rec-stat">
+              <span class="stat-label">Confidence</span>
+              <span class="stat-val" id="recConfidence">-</span>
+            </div>
+          </div>
+
+          <p class="rec-explanation" id="recExplanation">-</p>
+
+          <!-- Playlist status notice -->
+          <div id="playlistStatusNotice" class="banner banner-info"></div>
+
+          <!-- Alternatives -->
+          <div id="recAlternativesContainer" class="rec-alternatives hidden">
+            <span class="alt-label">Other Playlist Options:</span>
+            <div id="recAlternativesList" class="alt-list"></div>
+          </div>
+        </div>
+
+        <div class="action-row space-between">
+          <button id="cancelRecBtn" class="btn btn-secondary">Cancel</button>
+          <button id="confirmAddBtn" class="btn btn-success">Confirm & Add to Spotify</button>
+        </div>
+      </section>
+
+      <!-- Step 5: Result Screen -->
+      <section class="card hidden" id="resultSection">
+        <div class="success-banner">
+          <div class="success-icon">✓</div>
+          <h2>Song Successfully Organized!</h2>
+          <p id="resultSubtitle">Your choice has been saved to personalize future recommendations.</p>
+        </div>
+
+        <div class="result-details">
+          <div class="result-row">
+            <span class="r-label">Song:</span>
+            <span class="r-val" id="resSong">-</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Artist:</span>
+            <span class="r-val" id="resArtist">-</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Detected Mood:</span>
+            <span class="r-val" id="resAiMood">-</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Your Mood:</span>
+            <span class="r-val" id="resUserMood">-</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Target Playlist:</span>
+            <span class="r-val highlight" id="resPlaylist">-</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Confidence:</span>
+            <span class="r-val" id="resConfidence">-</span>
+          </div>
+        </div>
+
+        <div class="action-row space-between">
+          <a id="openSpotifyLink" href="#" target="_blank" class="btn btn-outline">🎧 Open in Spotify</a>
+          <button id="organizeAnotherBtn" class="btn btn-primary">Organize Another Song ➔</button>
+        </div>
+      </section>
+
+      <!-- Personalization Taste History -->
+      <section class="card history-section">
+        <div class="history-header">
+          <h3>Your Personal Taste History</h3>
+          <button id="refreshHistoryBtn" class="btn btn-sm btn-outline">Refresh</button>
+        </div>
+        <div id="historyTableContainer">
+          <p class="empty-history" id="emptyHistoryMsg">No songs organized yet. Your choices will appear here to personalize recommendations.</p>
+          <table class="history-table hidden" id="historyTable">
+            <thead>
+              <tr>
+                <th>Song</th>
+                <th>Artist</th>
+                <th>Your Mood</th>
+                <th>AI Mood</th>
+                <th>Playlist</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
