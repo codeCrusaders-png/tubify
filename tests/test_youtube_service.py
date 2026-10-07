@@ -13,12 +13,14 @@ def test_extract_video_id_variants():
     """Verify video ID extraction across various YouTube URL formats."""
     assert extract_video_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://youtu.be/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
-    assert extract_video_id("https://m.youtube.com/watch?v=dQw4w9WgXcQ&feature=share") == "dQw4w9WgXcQ"
+    assert extract_video_id("https://youtu.be/dQw4w9WgXcQ?si=abcdef12345") == "dQw4w9WgXcQ"
+    assert extract_video_id("https://m.youtube.com/watch?feature=share&v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://music.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://www.youtube.com/shorts/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://www.youtube.com/embed/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://example.com/not-youtube") is None
     assert extract_video_id("invalid-text") is None
+    assert extract_video_id("") is None
 
 
 def test_clean_channel_name():
@@ -27,6 +29,7 @@ def test_clean_channel_name():
     assert clean_channel_name("Coldplay - Topic") == "Coldplay"
     assert clean_channel_name("Queen Official") == "Queen"
     assert clean_channel_name("Dua Lipa") == "Dua Lipa"
+    assert clean_channel_name("Atlantic Records") == "Atlantic"
 
 
 def test_clean_title_noise():
@@ -37,6 +40,7 @@ def test_clean_title_noise():
     assert clean_title_noise("Lofi Hip Hop (1 Hour Loop)") == "Lofi Hip Hop"
     assert clean_title_noise("Never Gonna Give You Up (4K Remaster)") == "Never Gonna Give You Up"
     assert clean_title_noise('"Starboy" (Official Music Video)') == "Starboy"
+    assert clean_title_noise("Levitating (Clean)") == "Levitating"
 
 
 def test_normalize_title_and_artist_with_separator():
@@ -93,4 +97,3 @@ def test_youtube_service_extract_song_info_success(mock_client_class):
     assert result["channel"] == "Rick Astley"
     assert result["duration"] == "3:33"
     assert "thumbnail_url" in result
-
