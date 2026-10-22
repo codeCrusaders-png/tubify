@@ -83,3 +83,36 @@ def test_recommendation_personalization_boost():
 
     assert res["recommended_playlist"] == "Midnight Cruise"
     assert "past taste" in res["explanation"]
+
+
+def test_recommendation_artist_affinity():
+    """Verify artist affinity guides playlist recommendation when mood query is omitted."""
+    db = create_in_memory_db()
+    for _ in range(2):
+        db.add(
+            MoodHistory(
+                song_id="s_m1",
+                song_title="After Dark",
+                artist="Mr.Kitty",
+                user_mood="",
+                ai_mood="Late Night",
+                recommended_playlist="Late Night",
+                selected_playlist="Dark Synthwave",
+            )
+        )
+    db.commit()
+
+    rec_service = RecommendationService()
+    user_playlists = [{"id": "pl_ds", "name": "Dark Synthwave"}]
+
+    res = rec_service.recommend(
+        title="Glow",
+        artist="Mr.Kitty",
+        user_mood_input="",
+        user_playlists=user_playlists,
+        db=db,
+    )
+
+    assert res["recommended_playlist"] == "Dark Synthwave"
+    assert "previously organized Mr.Kitty" in res["explanation"]
+    assert res["playlist_exists"] is True

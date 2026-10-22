@@ -60,3 +60,26 @@ def test_search_track_not_found(mock_search):
     assert result["matched"] is False
     assert result["confidence"] == 0.0
     assert result["track"] is None
+
+
+@patch.object(SpotifyService, "_execute_search")
+def test_search_track_unknown_artist_fallback(mock_search):
+    """Verify unknown artist falls back to title search without literal Unknown Artist query."""
+    mock_search.return_value = [
+        {
+            "id": "trk_999",
+            "uri": "spotify:track:trk_999",
+            "name": "Sunflower",
+            "artists": [{"name": "Post Malone"}, {"name": "Swae Lee"}],
+            "album": {"name": "Spider-Man", "images": []},
+            "external_urls": {"spotify": "https://open.spotify.com/track/trk_999"},
+            "preview_url": None,
+        }
+    ]
+    service = SpotifyService()
+    result = service.search_track(title="Sunflower", artist="Unknown Artist", access_token="fake_token")
+
+    assert result["matched"] is True
+    assert result["track"]["title"] == "Sunflower"
+    # Ensure query didn't force artist:Unknown Artist
+    assert mock_search.call_args[0][0] == "track:Sunflower"

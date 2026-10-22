@@ -146,15 +146,30 @@ class SpotifyService:
         # Clean query terms
         clean_title = title.strip()
         clean_artist = artist.strip()
+        is_unknown_artist = clean_artist.lower() in ("", "unknown", "unknown artist")
+
+        # Sanitize colons for field-specific search to avoid Lucene query syntax errors
+        safe_title = clean_title.replace(":", " ")
+        safe_artist = clean_artist.replace(":", " ")
 
         # Step 1: Field-specific search
-        query = f"track:{clean_title} artist:{clean_artist}"
+        if is_unknown_artist:
+            query = f"track:{safe_title}"
+        else:
+            query = f"track:{safe_title} artist:{safe_artist}"
         tracks = self._execute_search(query, headers, limit)
 
         # Step 2: Fallback to loose general search if zero results
         if not tracks:
-            fallback_query = f"{clean_artist} {clean_title}"
+            if is_unknown_artist:
+                fallback_query = clean_title
+            else:
+                fallback_query = f"{clean_artist} {clean_title}"
             tracks = self._execute_search(fallback_query, headers, limit)
+
+        # Step 3: Second fallback to title-only if combined artist+title returned no hits
+        if not tracks and not is_unknown_artist:
+            tracks = self._execute_search(clean_title, headers, limit)
 
         if not tracks:
             return {

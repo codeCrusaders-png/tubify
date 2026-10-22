@@ -42,7 +42,8 @@
 
         <form id="analyzeForm" class="url-input-card">
           <input 
-            type="url" 
+            type="text" 
+            inputmode="url" 
             id="urlInput" 
             placeholder="Paste YouTube link..." 
             required 
@@ -55,6 +56,11 @@
         </form>
 
         <p class="control-note">You stay in control. Nothing gets added without your approval.</p>
+
+        <!-- Inline Status / Error Notice -->
+        <div id="stageNotice" class="stage-notice hidden" role="alert">
+          <p id="stageNoticeText" class="notice-text"></p>
+        </div>
 
         <!-- Inline Progress Indicator -->
         <div id="analysisProgress" class="inline-progress hidden" aria-live="polite">
@@ -171,22 +177,33 @@
               <button id="createAndAddBtn" class="primary-btn">Create & add</button>
             </div>
           </div>
+
+          <!-- State C: Spotify Disconnected -->
+          <div id="disconnectedBlock" class="confirm-content hidden">
+            <p class="missing-notice">Connect your Spotify account to save this track.</p>
+            <p class="confirm-heading">Save to <span id="disconnectedPlName" class="emphasis">Midnight Cruise</span></p>
+            <p class="missing-desc">Tubify will open Spotify so you can approve playlist access.</p>
+            <div class="confirm-actions">
+              <button id="cancelDisconnectedBtn" class="ghost-btn">Not now</button>
+              <button id="connectSpotifyPromptBtn" class="primary-btn">Connect Spotify</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Stage: Success -->
       <div id="successStage" class="flow-stage hidden">
         <div class="success-card">
-          <h2 class="success-word">Saved.</h2>
+          <h2 class="success-word" id="successHeading">Saved.</h2>
           <div class="saved-track-row">
             <span id="successTitle" class="saved-title">-</span>
             <span class="saved-sep">—</span>
             <span id="successArtist" class="saved-artist">-</span>
           </div>
           <div class="saved-pl-info">
-            Added to <strong id="successPlaylist">-</strong>
+            <span id="savedActionLabel">Added to</span> <strong id="successPlaylist">-</strong>
           </div>
-          <p class="saved-sub">Your song is now in Spotify.</p>
+          <p class="saved-sub" id="savedSubLabel">Your song is now in Spotify.</p>
 
           <div class="success-actions">
             <a id="openSpotifyBtn" href="#" target="_blank" rel="noopener" class="outline-btn">Open Spotify</a>

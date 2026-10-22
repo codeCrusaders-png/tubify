@@ -49,8 +49,14 @@ class RecommendationService:
             artist_matches = []
 
             for record in history_records:
-                # Recency weight (half-life of 30 days)
-                rec_age_days = (now - record.created_at.replace(tzinfo=timezone.utc)).total_seconds() / 86400 if record.created_at else 0
+                # Recency weight (half-life of 30 days) with robust timezone handling
+                created_dt = record.created_at
+                if created_dt:
+                    if created_dt.tzinfo is None:
+                        created_dt = created_dt.replace(tzinfo=timezone.utc)
+                    rec_age_days = max(0.0, (now - created_dt).total_seconds() / 86400)
+                else:
+                    rec_age_days = 0.0
                 decay = math.exp(-0.02 * min(rec_age_days, 180))
 
                 # Mood similarity
@@ -81,8 +87,13 @@ class RecommendationService:
                 explanation_factors.append(f"you previously organized {artist} into '{fav_pl}' ({count}x)")
 
         # 3. Determine Candidate Primary Playlist
-        # Priority: Artist past choice > Historical mood choice > Detected NLP mood
-        if artist_playlist_boost and (artist_playlist_boost == historical_playlist_boost or historical_weight > 0.15):
+        # Priority:
+        # - Strong mood query history takes precedence if specific and confident
+        # - Artist affinity takes precedence when user didn't enter a contrary mood
+        # - Otherwise historical mood choice or detected NLP mood
+        if historical_playlist_boost and historical_weight >= 0.20 and not (artist_playlist_boost and artist_playlist_boost == historical_playlist_boost):
+            candidate_primary = historical_playlist_boost
+        elif artist_playlist_boost:
             candidate_primary = artist_playlist_boost
         elif historical_playlist_boost:
             candidate_primary = historical_playlist_boost

@@ -18,7 +18,7 @@
     <img src="https://img.shields.io/badge/Python-3.11%20%7C%203.14-blue?logo=python" alt="Python Version" />
     <img src="https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi" alt="FastAPI" />
     <img src="https://img.shields.io/badge/scikit--learn-96.95%25%20Accuracy-F7931E?logo=scikitlearn" alt="Scikit-Learn Accuracy" />
-    <img src="https://img.shields.io/badge/Tests-29%20Passing-success?logo=pytest" alt="Pytest passing" />
+    <img src="https://img.shields.io/badge/Tests-31%20Passing-success?logo=pytest" alt="Pytest passing" />
     <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker" alt="Docker ready" />
   </p>
 </div>
@@ -66,9 +66,9 @@ When discovering music on YouTube (indie uploads, synthwave channels, live sessi
   - Zero modifications made without explicit user confirmation.
 
 * **💻 Sleek Single-Page Web Dashboard**:
-  - Dark-mode responsive UI in Vanilla HTML/CSS/JS (no heavy framework overhead).
-  - Includes a **Demo Mode Toggle** for testing without Spotify developer credentials.
-  - Live taste history table showing past decisions.
+  - Dark-first, minimal, Spotify-inspired interface designed for flow.
+  - Three-view experience: Home (analysis & organization), History (past taste log), and Settings (connection management).
+  - Clean inline progress states without fake percentage counters or visual clutter.
 
 ---
 
@@ -191,13 +191,11 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser.
 
-> **Note on Demo Mode:** If you do not have Spotify Developer credentials yet, simply toggle **Demo Mode** in the top-right corner to test the full YouTube analysis, mood NLP, and recommendation flow with simulated Spotify catalog data!
-
 ---
 
 ## 🧪 Running Automated Tests
 
-All 29 tests run in under 5 seconds with mocked external APIs:
+All 31 tests run in seconds with mocked external APIs:
 
 ```powershell
 pytest -v

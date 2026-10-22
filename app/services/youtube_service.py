@@ -6,11 +6,12 @@ import httpx
 
 # Comprehensive noise patterns found in music video titles
 NOISE_PATTERNS = [
+    r"\s*[|/]\s*(?:official\s*(?:music\s*|lyric\s*)?video|music\s*video|lyric\s*video|official\s*audio|official\s*visualizer|visualizer|audio).*$",
     r"\s*[\(\[\{]\s*(?:official\s*(?:music\s*|lyric\s*|visualizer\s*)?video|official\s*audio|official\s*visualizer|visualizer)\s*[\)\]\}]",
-    r"\s*[\(\[\{]\s*(?:lyrics?|lyric\s*video|audio|audio\s*only|official\s*track)\s*[\)\]\}]",
+    r"\s*[\(\[\{]\s*(?:lyrics?|lyric\s*video|audio|audio\s*only|official\s*track|color\s*coded\s*lyrics?)\s*[\)\]\}]",
     r"\s*[\(\[\{]\s*(?:slowed\s*(?:\+|\&|and)?\s*reverb|slowed|reverb|speed\s*up|sped\s*up)\s*[\)\]\}]",
     r"\s*[\(\[\{]\s*(?:\d+\s*hours?|\d+\s*hour\s*loop|loop|extended|extended\s*mix)\s*[\)\]\}]",
-    r"\s*[\(\[\{]\s*(?:4k(?:\s*remaster(?:ed)?)?|hd|hq|remaster(?:ed)?(?:\s*\d{4})?)\s*[\)\]\}]",
+    r"\s*[\(\[\{]\s*(?:(?:4k|hd|hq|1080p|720p|60fps|remaster(?:ed)?(?:\s*\d{4})?)\s*)+[\)\]\}]",
     r"\s*[\(\[\{]\s*(?:prod\.\s*by\s*[\w\s]+|produced\s*by\s*[\w\s]+)\s*[\)\]\}]",
     r"\s*[\(\[\{]\s*(?:clip\s*officiel|video\s*clip|mv)\s*[\)\]\}]",
     r"\s*[\(\[\{]\s*(?:explicit|clean|radio\s*edit)\s*[\)\]\}]",
@@ -22,17 +23,24 @@ def extract_video_id(url: str) -> Optional[str]:
 
     Supports:
     - https://www.youtube.com/watch?v=VIDEO_ID
+    - youtube.com/watch?v=VIDEO_ID (without protocol)
     - https://www.youtube.com/watch?feature=share&v=VIDEO_ID (params before v)
     - https://youtu.be/VIDEO_ID?si=...
+    - youtu.be/VIDEO_ID (without protocol)
     - https://m.youtube.com/watch?v=VIDEO_ID
     - https://music.youtube.com/watch?v=VIDEO_ID
     - https://www.youtube.com/shorts/VIDEO_ID
+    - https://www.youtube.com/live/VIDEO_ID
     - https://www.youtube.com/embed/VIDEO_ID
     """
     if not url or not isinstance(url, str):
         return None
 
     cleaned_url = url.strip()
+
+    # If protocol is omitted (e.g. youtube.com/watch?v=...), prepend https://
+    if "://" not in cleaned_url:
+        cleaned_url = f"https://{cleaned_url}"
 
     try:
         parsed = urllib.parse.urlparse(cleaned_url)
@@ -50,8 +58,8 @@ def extract_video_id(url: str) -> Optional[str]:
 
     # Standard youtube domains
     if any(d in hostname for d in ("youtube.com", "m.youtube.com", "music.youtube.com")):
-        # Path based: /shorts/<id>, /embed/<id>, /v/<id>
-        path_match = re.match(r"^/(?:shorts|embed|v)/([\w-]{11})", parsed.path)
+        # Path based: /shorts/<id>, /embed/<id>, /v/<id>, /live/<id>
+        path_match = re.match(r"^/(?:shorts|embed|v|live)/([\w-]{11})", parsed.path)
         if path_match:
             return path_match.group(1)
 

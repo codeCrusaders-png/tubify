@@ -12,11 +12,14 @@ from app.services.youtube_service import (
 def test_extract_video_id_variants():
     """Verify video ID extraction across various YouTube URL formats."""
     assert extract_video_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert extract_video_id("youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://youtu.be/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert extract_video_id("youtu.be/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://youtu.be/dQw4w9WgXcQ?si=abcdef12345") == "dQw4w9WgXcQ"
     assert extract_video_id("https://m.youtube.com/watch?feature=share&v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://music.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://www.youtube.com/shorts/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert extract_video_id("https://www.youtube.com/live/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://www.youtube.com/embed/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
     assert extract_video_id("https://example.com/not-youtube") is None
     assert extract_video_id("invalid-text") is None
@@ -41,6 +44,9 @@ def test_clean_title_noise():
     assert clean_title_noise("Never Gonna Give You Up (4K Remaster)") == "Never Gonna Give You Up"
     assert clean_title_noise('"Starboy" (Official Music Video)') == "Starboy"
     assert clean_title_noise("Levitating (Clean)") == "Levitating"
+    assert clean_title_noise("Mr.Kitty - After Dark | Official Video") == "Mr.Kitty - After Dark"
+    assert clean_title_noise("Song Title [1080p 60FPS]") == "Song Title"
+    assert clean_title_noise("Song (Color Coded Lyrics)") == "Song"
 
 
 def test_normalize_title_and_artist_with_separator():
@@ -50,6 +56,10 @@ def test_normalize_title_and_artist_with_separator():
     assert artist == "The Weeknd"
 
     title, artist = normalize_title_and_artist("Mr.Kitty – After Dark [Lyrics]", "Mr.Kitty")
+    assert title == "After Dark"
+    assert artist == "Mr.Kitty"
+
+    title, artist = normalize_title_and_artist("Mr.Kitty - After Dark | Official Video", "MrKittyVEVO")
     assert title == "After Dark"
     assert artist == "Mr.Kitty"
 

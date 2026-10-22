@@ -35,6 +35,8 @@
   const analyzeForm = document.getElementById('analyzeForm');
   const urlInput = document.getElementById('urlInput');
   const analyzeSubmitBtn = document.getElementById('analyzeSubmitBtn');
+  const stageNotice = document.getElementById('stageNotice');
+  const stageNoticeText = document.getElementById('stageNoticeText');
 
   // Inline Progress
   const analysisProgress = document.getElementById('analysisProgress');
@@ -71,8 +73,10 @@
 
   const confirmExistingBlock = document.getElementById('confirmExistingBlock');
   const createMissingBlock = document.getElementById('createMissingBlock');
+  const disconnectedBlock = document.getElementById('disconnectedBlock');
   const confirmPlName = document.getElementById('confirmPlName');
   const missingPlName = document.getElementById('missingPlName');
+  const disconnectedPlName = document.getElementById('disconnectedPlName');
   const miniArtwork = document.getElementById('miniArtwork');
   const miniTitle = document.getElementById('miniTitle');
   const miniArtist = document.getElementById('miniArtist');
@@ -80,12 +84,17 @@
   const submitAddBtn = document.getElementById('submitAddBtn');
   const chooseAnotherBtn = document.getElementById('chooseAnotherBtn');
   const createAndAddBtn = document.getElementById('createAndAddBtn');
+  const cancelDisconnectedBtn = document.getElementById('cancelDisconnectedBtn');
+  const connectSpotifyPromptBtn = document.getElementById('connectSpotifyPromptBtn');
 
   // Success Stage
   const successStage = document.getElementById('successStage');
+  const successHeading = document.getElementById('successHeading');
   const successTitle = document.getElementById('successTitle');
   const successArtist = document.getElementById('successArtist');
   const successPlaylist = document.getElementById('successPlaylist');
+  const savedActionLabel = document.getElementById('savedActionLabel');
+  const savedSubLabel = document.getElementById('savedSubLabel');
   const openSpotifyBtn = document.getElementById('openSpotifyBtn');
   const addAnotherBtn = document.getElementById('addAnotherBtn');
 
@@ -118,6 +127,20 @@
     }, 4000);
   }
 
+  function showStageNotice(message) {
+    if (stageNotice && stageNoticeText) {
+      stageNoticeText.textContent = message;
+      stageNotice.classList.remove('hidden');
+    }
+  }
+
+  function hideStageNotice() {
+    if (stageNotice && stageNoticeText) {
+      stageNotice.classList.add('hidden');
+      stageNoticeText.textContent = '';
+    }
+  }
+
   // Convert technical errors to polite human messages
   function humanizeError(err) {
     const msg = (err && err.message) || String(err || '');
@@ -129,6 +152,12 @@
     }
     if (msg.includes('Invalid YouTube URL')) {
       return 'Please enter a valid YouTube video link.';
+    }
+    if (msg.includes('CLIENT_ID') || msg.includes('credentials') || msg.includes('missing')) {
+      return 'Spotify API credentials not configured in .env. Please configure your Client ID and Secret.';
+    }
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Network error')) {
+      return 'Unable to reach the server. Please check your connection and try again.';
     }
     if (msg.includes('already_exists')) {
       return 'This track is already in your playlist.';
@@ -274,6 +303,7 @@
     if (!url) return;
 
     analyzeSubmitBtn.disabled = true;
+    hideStageNotice();
     setProgressState(1);
 
     // Hide subsequent stages during fresh search
@@ -330,7 +360,9 @@
       songStage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (err) {
       hideProgress();
-      showToast(humanizeError(err), 'error');
+      const friendlyMsg = humanizeError(err);
+      showToast(friendlyMsg, 'error');
+      showStageNotice(friendlyMsg);
     } finally {
       analyzeSubmitBtn.disabled = false;
     }
@@ -480,12 +512,19 @@
       recAlternativesWrapper.classList.add('hidden');
     }
 
-    // Toggle Permission Block State (Exists vs. Missing)
-    if (rec.playlist_exists) {
+    // Toggle Permission Block State (Exists vs. Missing vs. Disconnected)
+    if (!state.accessToken) {
+      disconnectedBlock.classList.remove('hidden');
+      confirmExistingBlock.classList.add('hidden');
+      createMissingBlock.classList.add('hidden');
+      disconnectedPlName.textContent = rec.recommended_playlist;
+    } else if (rec.playlist_exists) {
+      disconnectedBlock.classList.add('hidden');
       confirmExistingBlock.classList.remove('hidden');
       createMissingBlock.classList.add('hidden');
       confirmPlName.textContent = rec.recommended_playlist;
     } else {
+      disconnectedBlock.classList.add('hidden');
       confirmExistingBlock.classList.add('hidden');
       createMissingBlock.classList.remove('hidden');
       missingPlName.textContent = rec.recommended_playlist;
@@ -494,6 +533,14 @@
 
   cancelAddBtn.addEventListener('click', () => {
     recommendStage.classList.add('hidden');
+  });
+
+  cancelDisconnectedBtn.addEventListener('click', () => {
+    recommendStage.classList.add('hidden');
+  });
+
+  connectSpotifyPromptBtn.addEventListener('click', () => {
+    window.location.href = '/auth/spotify/login';
   });
 
   // Choose another playlist modal
@@ -589,10 +636,21 @@
     successArtist.textContent = state.matchedTrack.artist;
     successPlaylist.textContent = res.playlist_name;
     openSpotifyBtn.href = res.playlist_url || res.spotify_track_url || 'https://open.spotify.com';
+
+    if (res.already_exists) {
+      if (successHeading) successHeading.textContent = 'Already saved.';
+      if (savedActionLabel) savedActionLabel.textContent = 'This song is already in';
+      if (savedSubLabel) savedSubLabel.textContent = 'No duplicate track was added to your playlist.';
+    } else {
+      if (successHeading) successHeading.textContent = 'Saved.';
+      if (savedActionLabel) savedActionLabel.textContent = 'Added to';
+      if (savedSubLabel) savedSubLabel.textContent = 'Your song is now in Spotify.';
+    }
   }
 
   addAnotherBtn.addEventListener('click', () => {
     urlInput.value = '';
+    hideStageNotice();
     songStage.classList.add('hidden');
     moodStage.classList.add('hidden');
     recommendStage.classList.add('hidden');
@@ -690,6 +748,21 @@
     }
   });
 
+  async function checkServerAuthStatus() {
+    try {
+      const res = await fetch('/auth/spotify/status');
+      if (res.ok) {
+        const data = await res.json();
+        if (!data.configured) {
+          const connDesc = document.getElementById('settingsConnDesc');
+          if (settingsConnLabel) settingsConnLabel.textContent = 'Spotify credentials missing in .env';
+          if (connDesc) connDesc.textContent = 'Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env to connect your account.';
+        }
+      }
+    } catch (_) {}
+  }
+
   // Initialization
   checkUrlForAuthTokens();
+  checkServerAuthStatus();
 })();

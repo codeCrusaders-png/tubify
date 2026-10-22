@@ -19,3 +19,4 @@ services:
       - SECRET_KEY=${SECRET_KEY:-tubify-production-secret-key-32chars}
     volumes:
       - ./data:/app/data
+

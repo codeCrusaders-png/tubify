@@ -232,6 +232,18 @@ body {
   margin-top: 14px;
 }
 
+.stage-notice {
+  margin-top: 20px;
+  padding: 12px 18px;
+  background: var(--surface);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: var(--radius-md);
+  color: #fca5a5;
+  font-size: 0.88rem;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+}
+
 /* ==========================================================================
    Inline Analysis Progress
    ========================================================================== */

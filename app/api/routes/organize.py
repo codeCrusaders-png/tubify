@@ -50,6 +50,9 @@ def add_track_to_playlist(
             target_playlist_id = new_pl["id"]
             playlist_url = new_pl.get("spotify_url")
 
+    if target_playlist_id and not playlist_url:
+        playlist_url = f"https://open.spotify.com/playlist/{target_playlist_id}"
+
     # 3. Duplicate check & Add track
     try:
         result = spotify_service.add_track(
